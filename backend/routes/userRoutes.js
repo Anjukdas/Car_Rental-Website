@@ -3,7 +3,7 @@
 
 import express from 'express';
 import { protect ,admin} from '../middlewares/authMiddleware.js';
-import { getAllUsers, loginUser, registerUser } from '../controllers/usersController.js';
+import { deleteUserById, getAllUsers, getUserById, loginUser, registerUser, updateUserById } from '../controllers/usersController.js';
 
 const userRouter = express.Router();
 
@@ -24,21 +24,19 @@ userRouter.get("/profile", protect, (req, res) => {
 
 userRouter.get("/all-users", protect, admin, getAllUsers);
 
-// // Get all users
-// // GET /getUsers
-// userRouter.get("/",getUsers);
+// GET /users/:id
+userRouter.get("/:id", protect, getUserById);
 
-// // Get single user by ID
-// // GET /users/:id
-// userRouter.get("/:id",getUserById);
+// PUT /users/:id
+userRouter.put("/:id", protect, updateUserById);
 
-// // Update user by ID
-// // PUT /users/:id
-// userRouter.put("/:id",updateUserById);
 
-// // Delete user by ID
-// // DELETE /users/:id
-// userRouter.delete("/:id",deleteUserById);
+// DELETE /users/:id
+userRouter.delete("/:id", protect, deleteUserById);
+
+
+
+
 
 
 

@@ -80,3 +80,73 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
+// Get single user by userId
+export const getUserById = async (req, res) => {
+  try {
+    const userId = req.params.id; // ID from URL
+
+    const user = await User.findOne({ userId }).select("-password"); // exclude password
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Only admin or the user themselves can access
+    if (req.user.role !== "admin" && req.user.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    res.status(200).json({ user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+// Update user by userId
+export const updateUserById = async (req, res) => {
+  try {
+    const userId = req.params.id; // ID from URL
+    const updates = req.body;     // updated fields
+
+    // Find user
+    const user = await User.findOne({ userId });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Only admin or the user themselves can update
+    if (req.user.role !== "admin" && req.user.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    // Update allowed fields 
+    if (updates.email) user.email = updates.email;
+    if (updates.role && req.user.role === "admin") user.role = updates.role; // only admin can change role
+    if (updates.username) user.username = updates.username;
+    if (updates.name) user.name = updates.name;
+
+    await user.save();
+
+    res.status(200).json({ message: "User updated successfully", user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Delete user by userId
+export const deleteUserById = async (req, res) => {
+  try {
+    const user = await User.findOne({ userId: req.params.id });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Only admin or the user themselves can delete
+    if (req.user.role !== "admin" && req.user.userId !== req.params.id) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    // Use deleteOne instead 
+    await User.deleteOne({ userId: req.params.id });
+
+    res.status(200).json({ message: `User with ID ${req.params.id} has been deleted.` });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
